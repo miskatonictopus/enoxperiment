@@ -55,11 +55,30 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ captures: [] }, { status: 200 });
   }
 
-  const captures = (data ?? [])
+  const objectNames = (data ?? [])
     .map((item) => item.name)
-    .filter((name): name is string => typeof name === 'string' && name.length > 0)
-    .map((name) => supabase.storage.from(SUPABASE_FEEDBACK_BUCKET).getPublicUrl(name).data.publicUrl)
-    .filter((url): url is string => typeof url === 'string' && url.length > 0);
+    .filter((name): name is string => typeof name === 'string' && name.length > 0);
+
+  let captures: string[] = [];
+
+  if (objectNames.length > 0) {
+    const { data: signedData, error: signedError } = await supabase.storage
+      .from(SUPABASE_FEEDBACK_BUCKET)
+      .createSignedUrls(objectNames, 60 * 60 * 24 * 7);
+
+    if (!signedError && Array.isArray(signedData)) {
+      captures = signedData
+        .map((item) => item?.signedUrl)
+        .filter((url): url is string => typeof url === 'string' && url.length > 0);
+    }
+  }
+
+  // Fallback: if signed URLs fail for any reason, try public URLs.
+  if (captures.length === 0) {
+    captures = objectNames
+      .map((name) => supabase.storage.from(SUPABASE_FEEDBACK_BUCKET).getPublicUrl(name).data.publicUrl)
+      .filter((url): url is string => typeof url === 'string' && url.length > 0);
+  }
 
   return NextResponse.json({ captures }, { status: 200 });
 }
@@ -125,4 +144,3 @@ export async function POST(req: NextRequest) {
     { status: 201 }
   );
 }
-
