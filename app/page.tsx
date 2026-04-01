@@ -10,18 +10,8 @@ import { DEFAULT_PALETTE } from '@/lib/emotional-palettes';
 
 type AppState = 'welcome' | 'loading' | 'geometry';
 type SketchVariant = 'bars' | 'recursive' | 'conic_spheres';
-type FeedbackEntry = {
-  id: string;
-  timestamp: string;
-  helpful: boolean;
-  paletteName: string;
-  sketchVariant: SketchVariant;
-  thumbnailDataUrl?: string;
-};
 
 const SKETCH_VARIANTS: SketchVariant[] = ['bars', 'recursive', 'conic_spheres'];
-const FEEDBACK_STORAGE_KEY = 'enoxperience_feedback_v1';
-const FEEDBACK_RESET_MARKER = 'enoxperience_feedback_reset_2026_04_01';
 const CAPTURE_BACKGROUND = '#f5f5f5';
 
 export default function Page() {
@@ -33,9 +23,13 @@ export default function Page() {
   const geometryRef = useRef<HTMLDivElement>(null);
   const webglCaptureRef = useRef<(() => Promise<string>) | null>(null);
 
+  const loadCaptureGrid = async () => {
+    const captures = await fetchSupabaseCaptures(12);
+    setCaptureGrid(captures);
+  };
+
   useEffect(() => {
-    resetFeedbackStorageOnce();
-    setCaptureGrid(getHelpfulCaptures());
+    void loadCaptureGrid();
   }, []);
 
   const handleFeeling = async (feeling: string) => {
@@ -74,16 +68,14 @@ export default function Page() {
           thumbnailDataUrl = await captureSketchThumbnail(geometryRef.current, 125);
         }
       }
-      const entry: FeedbackEntry = {
-        id: typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `${Date.now()}`,
-        timestamp: new Date().toISOString(),
-        helpful,
-        paletteName,
-        sketchVariant,
-        thumbnailDataUrl,
-      };
-      appendFeedbackEntry(entry);
-      setCaptureGrid(getHelpfulCaptures());
+      if (helpful && thumbnailDataUrl) {
+        await saveCaptureToSupabase({
+          paletteName,
+          sketchVariant,
+          thumbnailDataUrl,
+        });
+      }
+      await loadCaptureGrid();
       setScreen('welcome');
     } finally {
       setIsSavingFeedback(false);
@@ -189,48 +181,6 @@ async function captureSketchThumbnail(root: HTMLDivElement | null, maxWidth: num
     return captureWithHtml2Canvas(root, maxWidth);
   }
   return thumbCanvas.toDataURL('image/jpeg', 0.86);
-}
-
-function readFeedbackEntries(): FeedbackEntry[] {
-  if (typeof window === 'undefined') return [];
-  const raw = window.localStorage.getItem(FEEDBACK_STORAGE_KEY);
-  if (!raw) return [];
-  try {
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter((item): item is FeedbackEntry => {
-      if (!item || typeof item !== 'object') return false;
-      return typeof item.id === 'string' && typeof item.timestamp === 'string' && typeof item.helpful === 'boolean';
-    });
-  } catch {
-    return [];
-  }
-}
-
-function writeFeedbackEntries(entries: FeedbackEntry[]) {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(FEEDBACK_STORAGE_KEY, JSON.stringify(entries));
-}
-
-function appendFeedbackEntry(entry: FeedbackEntry) {
-  const current = readFeedbackEntries();
-  const next = [entry, ...current].slice(0, 100);
-  writeFeedbackEntries(next);
-}
-
-function getHelpfulCaptures(limit = 12): string[] {
-  return readFeedbackEntries()
-    .filter((item) => item.helpful && typeof item.thumbnailDataUrl === 'string' && item.thumbnailDataUrl.length > 0)
-    .map((item) => item.thumbnailDataUrl as string)
-    .slice(0, limit);
-}
-
-function resetFeedbackStorageOnce() {
-  if (typeof window === 'undefined') return;
-  const alreadyReset = window.localStorage.getItem(FEEDBACK_RESET_MARKER);
-  if (alreadyReset === '1') return;
-  window.localStorage.removeItem(FEEDBACK_STORAGE_KEY);
-  window.localStorage.setItem(FEEDBACK_RESET_MARKER, '1');
 }
 
 function waitForNextPaint() {
@@ -442,4 +392,36 @@ function isMostlyWhite(canvas: HTMLCanvasElement, threshold = 0.98) {
     }
   }
   return total > 0 ? bright / total >= threshold : false;
+}
+
+async function fetchSupabaseCaptures(limit = 12): Promise<string[]> {
+  try {
+    const res = await fetch(`/api/captures?limit=${encodeURIComponent(String(limit))}`, {
+      method: 'GET',
+      cache: 'no-store',
+    });
+    if (!res.ok) return [];
+    const data = (await res.json()) as { captures?: unknown };
+    if (!Array.isArray(data.captures)) return [];
+    return data.captures.filter((item): item is string => typeof item === 'string' && item.length > 0);
+  } catch {
+    return [];
+  }
+}
+
+async function saveCaptureToSupabase(payload: {
+  paletteName: string;
+  sketchVariant: SketchVariant;
+  thumbnailDataUrl: string;
+}) {
+  try {
+    await fetch('/api/captures', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+      cache: 'no-store',
+    });
+  } catch {
+    // Ignore save errors in UI flow.
+  }
 }
