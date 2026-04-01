@@ -1,21 +1,5 @@
-# Next.js template
+Abstract form lies a conceptual framework rooted in a kind of “quantum response” to human input. When a user provides a set of words, those words act as variables in a probabilistic system, interpreted by artificial intelligence to generate an image that is inherently unpredictable. This randomness is not meaningless; rather, it mirrors the uncertain and fluid nature of emotional states.
 
-This is a Next.js template with shadcn/ui.
+In this process, the AI constructs a liminal environment—spaces that feel in-between, neither fully familiar nor entirely unknown. These environments are intentionally ambiguous, designed to gently disrupt the user’s current emotional pattern. By presenting imagery that exists outside conventional context, the system encourages a shift in perception, allowing the mind to recalibrate.
 
-## Adding components
-
-To add components to your app, run the following command:
-
-```bash
-npx shadcn@latest add button
-```
-
-This will place the ui components in the `components` directory.
-
-## Using components
-
-To use the components in your app, import them as follows:
-
-```tsx
-import { Button } from "@/components/ui/button";
-```
+The outcome is not just visual, but psychological. The generated image serves as a counterbalance to the user’s mood, subtly guiding it toward equilibrium. Through this interplay between input, randomness, and interpretation, the experience becomes a dynamic loop: the user influences the system, and the system, in turn, influences the user. Ultimately, this interaction reflects a broader principle—small inputs can lead to complex and unexpected outputs, and within that unpredictability lies the potential for emotional adjustment and renewed mental clarity.
