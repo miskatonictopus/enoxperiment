@@ -8,8 +8,6 @@ import {
   type Mood,
 } from '@/lib/emotional-palettes';
 
-const client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-
 const SYSTEM_PROMPT = `You are an expert clinical psychologist specialized in color theory and emotion regulation.
 
 Task:
@@ -105,6 +103,12 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const apiKey = process.env.OPENAI_API_KEY;
+    if (!apiKey) {
+      throw new Error('Missing OPENAI_API_KEY');
+    }
+
+    const client = new OpenAI({ apiKey });
     const response = await client.chat.completions.create({
       model: 'gpt-4o-mini',
       messages: [
