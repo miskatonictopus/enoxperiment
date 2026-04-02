@@ -5,7 +5,7 @@ import Welcome from '@/components/Welcome';
 import GeometrySketch from '@/components/GeometrySketch';
 import GeometrySketchRecursive from '@/components/GeometrySketchRecursive';
 import GeometrySketchConicSpheres from '@/components/GeometrySketchConicSpheres';
-import { Heart, HeartOff } from 'lucide-react';
+import { Heart, HeartOff, House } from 'lucide-react';
 import { DEFAULT_PALETTE } from '@/lib/emotional-palettes';
 
 type AppState = 'welcome' | 'loading' | 'geometry';
@@ -133,6 +133,20 @@ export default function Page() {
               }}
             >
               <HeartOff size={16} />
+            </button>
+            <button
+              type="button"
+              onClick={() => setScreen('welcome')}
+              disabled={isSavingFeedback}
+              aria-label="Volver al inicio"
+              title="Volver al inicio"
+              className="w-9 h-9 rounded-full border border-[#0a0a0a] bg-[#0a0a0a] text-[#fafafa] hover:bg-[#fafafa] hover:text-[#0a0a0a] hover:border-[#fafafa] transition-colors duration-200 grid place-items-center"
+              style={{
+                opacity: isSavingFeedback ? 0.5 : 1,
+                cursor: isSavingFeedback ? 'not-allowed' : 'pointer',
+              }}
+            >
+              <House size={16} />
             </button>
           </div>
         </div>

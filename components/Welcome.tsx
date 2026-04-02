@@ -4,7 +4,8 @@ import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
-import { CircleArrowDown } from 'lucide-react';
+import { CircleArrowDown, X } from 'lucide-react';
+import { Dialog } from '@base-ui/react/dialog';
 import BulgeText from '@/components/BulgeText';
 
 interface WelcomeProps {
@@ -28,6 +29,8 @@ const MOOD_LABELS: Array<{ id: string; label: string }> = [
 export default function Welcome({ onSubmit, captures = [] }: WelcomeProps) {
   const [value, setValue] = useState('');
   const [visible, setVisible] = useState(false);
+  const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [isTechStackOpen, setIsTechStackOpen] = useState(false);
   const [titleWidth, setTitleWidth] = useState<number | undefined>();
   const [viewportWidth, setViewportWidth] = useState(1280);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -56,7 +59,8 @@ export default function Welcome({ onSubmit, captures = [] }: WelcomeProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
       handleSubmit();
     }
   };
@@ -78,6 +82,81 @@ export default function Welcome({ onSubmit, captures = [] }: WelcomeProps) {
         ? 3.4 * rootFontSize.current
         : 5.2 * rootFontSize.current;
   const isMobile = viewportWidth < 640;
+
+  if (isGalleryOpen) {
+    return (
+      <div className="w-full min-h-dvh bg-[#1a1a1a] text-[#fafafa]">
+        <div className="w-full px-3 py-4 md:px-6 md:py-6">
+          <div className="mb-4 flex items-center justify-between">
+            <p
+              style={{
+                fontSize: '1.8rem',
+                fontWeight: 900,
+                letterSpacing: '-0.04em',
+                lineHeight: 1,
+              }}
+            >
+              Gallery
+            </p>
+            <button
+              type="button"
+              onClick={() => setIsGalleryOpen(false)}
+              style={{
+                border: '1px solid #666',
+                borderRadius: '9999px',
+                padding: '0.35rem 0.9rem',
+                fontSize: '0.8rem',
+                lineHeight: 1.2,
+                cursor: 'pointer',
+                background: 'transparent',
+                color: '#fafafa',
+              }}
+            >
+              Back
+            </button>
+          </div>
+
+          {captures.length > 0 ? (
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, 125px)',
+                gap: '0.5rem',
+                width: '100%',
+                justifyContent: isMobile ? 'center' : 'start',
+              }}
+            >
+              {captures.map((capture, idx) => (
+                <div
+                  key={`gallery-${capture.slice(0, 32)}-${idx}`}
+                  style={{
+                    width: '125px',
+                    maxWidth: '125px',
+                    aspectRatio: '16 / 9',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <img
+                    src={capture}
+                    alt={`Captura ${idx + 1}`}
+                    style={{
+                      width: '100%',
+                      height: '100%',
+                      display: 'block',
+                      objectFit: 'cover',
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p style={{ color: '#999', fontSize: '0.9rem' }}>No captures yet.</p>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full min-h-dvh bg-[#1a1a1a] text-[#fafafa]">
@@ -198,7 +277,21 @@ Ultimately, this interaction reflects a broader principle—small inputs can lea
                     ))}
                   </div>
                   <div className="flex items-center justify-between">
-                    <span style={{ color: '#666', fontSize: '0.75rem' }}>⌘ + Enter para enviar</span>
+                    <button
+                      type="button"
+                      onClick={() => setIsGalleryOpen(true)}
+                      style={{
+                        color: '#999',
+                        fontSize: '0.75rem',
+                        textDecoration: 'underline',
+                        cursor: 'pointer',
+                        background: 'transparent',
+                        border: 0,
+                        padding: 0,
+                      }}
+                    >
+                      View gallery
+                    </button>
                     <Button onClick={handleSubmit} disabled={!value.trim()} style={{ background: '#fafafa', color: '#1a1a1a' }}>
                       <span style={{ fontWeight: 900 }}>SFLUSH</span>
                     </Button>
@@ -210,7 +303,7 @@ Ultimately, this interaction reflects a broader principle—small inputs can lea
                   style={{
                     marginTop: '0.75rem',
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+                    gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
                     gap: '0.5rem',
                     width: '100%',
                   }}
@@ -264,35 +357,127 @@ Ultimately, this interaction reflects a broader principle—small inputs can lea
           className="md:px-6"
         >
           <div style={{ height: '0.5px', background: '#fafafa', width: '100%' }} />
-          <p
-            style={{
-              marginTop: '0.75rem',
-              fontFamily: 'Inter, sans-serif',
-              fontWeight: 200,
-              fontSize: '0.85rem',
-              color: 'rgb(250, 250, 250)',
-            }}
-          >
-            Thanks to...:{' '}
-            <a
-              href="https://x.com/ngsm"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: 'rgb(250, 250, 250)', textDecoration: 'underline' }}
+          <div className="mt-3 flex items-center justify-between gap-4">
+            <p
+              style={{
+                fontFamily: 'Inter, sans-serif',
+                fontWeight: 400,
+                fontSize: '0.85rem',
+                color: 'rgb(250, 250, 250)',
+              }}
             >
-              Toshiyuki Nagashima
-            </a>
-            {' '}|{' '}
-            <a
-              href="https://github.com/romanjeanelie"
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ color: 'rgb(250, 250, 250)', textDecoration: 'underline' }}
-            >
-              Roman Jean-Elie
-            </a>
-            {' '}|{' '}
-          </p>
+              Thanks to...:{' '}
+              <a
+                href="https://x.com/ngsm"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'rgb(250, 250, 250)', textDecoration: 'underline' }}
+              >
+                Toshiyuki Nagashima
+              </a>
+              {' '}|{' '}
+              <a
+                href="https://github.com/romanjeanelie"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: 'rgb(250, 250, 250)', textDecoration: 'underline' }}
+              >
+                Roman Jean-Elie
+              </a>
+              {' '}|{' '}
+            </p>
+            <Dialog.Root open={isTechStackOpen} onOpenChange={setIsTechStackOpen}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  fontFamily: 'Inter, sans-serif',
+                  fontSize: '0.85rem',
+                  color: '#fafafa',
+                }}
+              >
+                <span>EDUCATIONAL PROJECT</span>
+                <span aria-hidden="true">|</span>
+                <Dialog.Trigger
+                  style={{
+                    fontFamily: 'Inter, sans-serif',
+                    fontWeight: 700,
+                    fontSize: '0.85rem',
+                    color: '#fafafa',
+                    textAlign: 'right',
+                    textDecoration: 'underline',
+                    background: 'transparent',
+                    border: 0,
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  Tech stack
+                </Dialog.Trigger>
+              </div>
+
+              <Dialog.Portal>
+                <Dialog.Backdrop className="fixed inset-0 z-[100] bg-black/70" />
+                <Dialog.Popup className="fixed left-1/2 top-1/2 z-[110] w-[min(880px,94vw)] max-h-[80vh] -translate-x-1/2 -translate-y-1/2 overflow-y-auto rounded-xl border border-[#444] bg-[#1a1a1a] p-5 text-[#fafafa] shadow-2xl">
+                  <div className="mb-4 flex items-start justify-between gap-4">
+                    <Dialog.Title className="text-xl font-bold tracking-tight">Tech stack</Dialog.Title>
+                    <Dialog.Close
+                      aria-label="Cerrar"
+                      className="grid h-8 w-8 place-items-center rounded-full border border-[#666] bg-transparent text-[#fafafa]"
+                    >
+                      <X size={16} />
+                    </Dialog.Close>
+                  </div>
+
+                  <Dialog.Description className="text-sm leading-6 text-[#e8e8e8]">
+                    This project is built with Next.js 16 and React 19, using TypeScript for type safety and maintainability.
+                  </Dialog.Description>
+
+                  <div className="mt-4 space-y-4 text-sm leading-6 text-[#e8e8e8]">
+                    <div>
+                      <p className="mb-1 font-semibold text-[#fafafa]">Core technologies</p>
+                      <ul className="list-disc space-y-1 pl-5">
+                        <li>Next.js 16 (App Router) for the application framework</li>
+                        <li>React 19 + React DOM for UI rendering</li>
+                        <li>TypeScript for static typing</li>
+                        <li>Tailwind CSS v4 for styling and responsive layouts</li>
+                        <li>shadcn/ui + Base UI for reusable UI primitives</li>
+                        <li>Lucide React for iconography</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <p className="mb-1 font-semibold text-[#fafafa]">Creative rendering / visuals</p>
+                      <ul className="list-disc space-y-1 pl-5">
+                        <li>p5.js for generative sketches and shader-driven visual experiments</li>
+                        <li>Three.js with @react-three/fiber and @react-three/drei for 3D/WebGL scenes</li>
+                        <li>postprocessing for visual effects pipelines</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <p className="mb-1 font-semibold text-[#fafafa]">Utility and UX helpers</p>
+                      <ul className="list-disc space-y-1 pl-5">
+                        <li>html2canvas for client-side snapshot/capture generation</li>
+                        <li>next-themes for theme management</li>
+                        <li>clsx, class-variance-authority, and tailwind-merge for class composition patterns</li>
+                      </ul>
+                    </div>
+
+                    <div>
+                      <p className="mb-1 font-semibold text-[#fafafa]">Tooling</p>
+                      <ul className="list-disc space-y-1 pl-5">
+                        <li>ESLint + eslint-config-next for linting</li>
+                        <li>Prettier + prettier-plugin-tailwindcss for formatting</li>
+                        <li>PostCSS + Tailwind CSS build pipeline</li>
+                      </ul>
+                    </div>
+                  </div>
+                </Dialog.Popup>
+              </Dialog.Portal>
+            </Dialog.Root>
+          </div>
         </div>
       </footer>
     </div>
