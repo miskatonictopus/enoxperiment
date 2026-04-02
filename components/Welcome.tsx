@@ -308,7 +308,7 @@ Ultimately, this interaction reflects a broader principle—small inputs can lea
                     width: '100%',
                   }}
                 >
-              {captures.slice(-9).map((capture, idx) => (
+              {captures.slice(0, 9).map((capture, idx) => (
                 <div
                   key={`${capture.slice(0, 32)}-${idx}`}
                   style={{
