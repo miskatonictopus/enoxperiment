@@ -77,27 +77,49 @@ export default function Welcome({ onSubmit, captures = [] }: WelcomeProps) {
       : viewportWidth < 1024
         ? 3.4 * rootFontSize.current
         : 5.2 * rootFontSize.current;
+  const isMobile = viewportWidth < 640;
 
   return (
     <div className="w-full min-h-dvh bg-[#1a1a1a] text-[#fafafa]">
-      <div className="mx-auto w-full max-w-[1600px] px-3 py-4 md:px-6 md:py-6">
+      <div className="mx-auto w-full max-w-[1600px] px-3 pt-4 pb-28 md:px-6 md:pt-6 md:pb-32">
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1.25fr_1fr] xl:gap-8">
           <div className="order-2 xl:order-1" style={{ overflow: 'visible' }}>
-            <BulgeText
-              lines={['brian eno', 'xperience', 'brain health', 'experiment']}
-              fontSize={titleFontSize}
-              letterSpacingRatio={-0.06}
-              lineHeightRatio={0.85}
-              color="#fafafa"
-              onWidth={setTitleWidth}
-            />
+            {isMobile ? (
+              <h1
+                style={{
+                  fontSize: '2.4rem',
+                  fontWeight: 900,
+                  letterSpacing: '-0.05em',
+                  lineHeight: 0.85,
+                  textTransform: 'uppercase',
+                  color: '#fafafa',
+                }}
+              >
+                brian eno
+                <br />
+                xperience
+                <br />
+                brain health
+                <br />
+                experiment
+              </h1>
+            ) : (
+              <BulgeText
+                lines={['brian eno', 'xperience', 'brain health', 'experiment']}
+                fontSize={titleFontSize}
+                letterSpacingRatio={-0.06}
+                lineHeightRatio={0.85}
+                color="#fafafa"
+                onWidth={setTitleWidth}
+              />
+            )}
 
             <div
               style={{
-                marginTop: viewportWidth < 640 ? '18px' : '48px',
+                marginTop: isMobile ? '18px' : '48px',
                 height: '0.5px',
                 background: '#fafafa',
-                width: titleWidth ?? '100%',
+                width: isMobile ? '100%' : titleWidth ?? '100%',
                 maxWidth: '100%',
               }}
             />
@@ -107,10 +129,10 @@ export default function Welcome({ onSubmit, captures = [] }: WelcomeProps) {
                 marginTop: '0.5em',
                 fontFamily: 'Inter, sans-serif',
                 fontWeight: 200,
-                fontSize: viewportWidth < 640 ? '0.8rem' : '0.9rem',
+                fontSize: isMobile ? '0.8rem' : '0.9rem',
                 color: 'rgb(250, 250, 250)',
                 lineHeight: 1.2,
-                width: titleWidth ?? '100%',
+                width: isMobile ? '100%' : titleWidth ?? '100%',
                 maxWidth: '100%',
                 textAlign: 'justify',
               }}
@@ -135,7 +157,7 @@ Ultimately, this interaction reflects a broader principle—small inputs can lea
                   fontWeight: 900,
                   letterSpacing: '-0.05em',
                   color: '#fafafa',
-                  marginBottom: '0.5rem',
+                  marginBottom: '30px',
                   lineHeight: 0.95,
                   textAlign: 'right',
                 }}
@@ -193,7 +215,7 @@ Ultimately, this interaction reflects a broader principle—small inputs can lea
                     width: '100%',
                   }}
                 >
-              {captures.map((capture, idx) => (
+              {captures.slice(-9).map((capture, idx) => (
                 <div
                   key={`${capture.slice(0, 32)}-${idx}`}
                   style={{
@@ -214,14 +236,6 @@ Ultimately, this interaction reflects a broader principle—small inputs can lea
                       objectFit: 'cover',
                     }}
                   />
-                  <div
-                    style={{
-                      position: 'absolute',
-                      inset: 0,
-                      pointerEvents: 'none',
-                      background: getThumbOverlay(capture, idx),
-                    }}
-                  />
                 </div>
               ))}
             </div>
@@ -230,7 +244,25 @@ Ultimately, this interaction reflects a broader principle—small inputs can lea
           </div>
         </div>
 
-        <footer style={{ marginTop: '1rem', paddingBottom: '1rem' }}>
+      </div>
+      <footer
+        style={{
+          position: 'fixed',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: '#1a1a1a',
+          zIndex: 40,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: '1600px',
+            margin: '0 auto',
+            padding: '0.75rem 0.75rem 1rem 0.75rem',
+          }}
+          className="md:px-6"
+        >
           <div style={{ height: '0.5px', background: '#fafafa', width: '100%' }} />
           <p
             style={{
@@ -261,27 +293,8 @@ Ultimately, this interaction reflects a broader principle—small inputs can lea
             </a>
             {' '}|{' '}
           </p>
-        </footer>
-      </div>
+        </div>
+      </footer>
     </div>
   );
-}
-
-function getThumbOverlay(capture: string, idx: number) {
-  const seed = `${capture.slice(0, 48)}-${idx}`;
-  let hash = 0;
-  for (let i = 0; i < seed.length; i++) {
-    hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;
-  }
-  const direction = hash % 4;
-  switch (direction) {
-    case 0:
-      return 'linear-gradient(to bottom, #0a0a0a 0%, transparent 65%)';
-    case 1:
-      return 'linear-gradient(to right, #0a0a0a 0%, transparent 65%)';
-    case 2:
-      return 'linear-gradient(to left, #0a0a0a 0%, transparent 65%)';
-    default:
-      return 'linear-gradient(to top, #0a0a0a 0%, transparent 65%)';
-  }
 }
