@@ -88,8 +88,8 @@ export default function Page() {
         <Welcome onSubmit={handleFeeling} captures={captureGrid} />
       )}
       {screen === 'loading' && (
-        <div className="w-full h-full flex items-center justify-center" style={{ background: '#fafafa' }}>
-          <p style={{ fontSize: '1.2rem', fontWeight: 200, color: '#1a1a1a', letterSpacing: '-0.02em' }}>
+        <div className="w-full h-full flex items-center justify-center" style={{ background: '#0a0a0a' }}>
+          <p style={{ fontSize: '2.2rem', fontWeight: 900, color: '#fafafa', letterSpacing: '-0.05em', lineHeight: 0.95 }}>
             Reading your feelings…
           </p>
         </div>
